@@ -165,7 +165,7 @@ export default function SpinWheelApp() {
     // 3. UPDATE STATE UTAMA
     playSound('win'); // Suara kemenangan masuk
     
-    setCurrentSpinName(`${newWinners.length} TERPILIH!`); 
+    setCurrentSpinName(`Ready!`); 
     setAllWinners(prev => [...prev, ...newWinners]); 
     setLastBatchWinners(newWinners); 
     
@@ -291,95 +291,154 @@ export default function SpinWheelApp() {
       {/* --- MODAL OVERLAY KHUSUS BATCH REVEAL --- 
           Ini UI rahasia agar terlihat mewah saat pemenang > 1 
       */}
+      {/* --- MODAL OVERLAY KHUSUS BATCH REVEAL (SMART LAYOUT) --- */}
       <AnimatePresence>
         {showBatchModal && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 md:p-10"
+            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4"
           >
-            <div className="w-full max-w-6xl max-h-full flex flex-col items-center">
-                
-                {/* Title */}
-                <motion.div 
-                  initial={{ y: -50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  className="mb-8 text-center"
-                >
-                  <h2 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 mb-2">
-                    SELAMAT KEPADA
-                  </h2>
-                  <p className="text-white text-xl">{lastBatchWinners.length} Pemenang Terpilih</p>
-                </motion.div>
+            {(() => {
+               const count = lastBatchWinners.length;
+               
+               // --- LOGIKA KEPADATAN ---
+               const isSingle = count === 1;           // Mode Hero (1 Orang)
+               const isHighDensity = count > 10;       // Mode Padat (>10 Orang)
+               
+               // --- TENTUKAN GRID & CONTAINER ---
+               // Default: Full width untuk grid banyak
+               let containerWidth = "w-full max-w-7xl"; 
+               let gridClass = "grid-cols-1"; 
 
-                {/* Grid Cards Container with Stagger Effect */}
-                <motion.div 
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full overflow-y-auto custom-scrollbar p-2"
-                  variants={{
-                    hidden: { opacity: 0 },
-                    show: {
-                      opacity: 1,
-                      transition: {
-                        staggerChildren: 0.15 // Delay antar kartu muncul (efek bup-bup-bup)
-                      }
-                    }
-                  }}
-                  initial="hidden"
-                  animate="show"
-                >
-                  {lastBatchWinners.map((winner, idx) => (
-                    <motion.div
-                      key={winner.id}
-                      variants={{
-                        hidden: { scale: 0, opacity: 0 },
-                        show: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 200 } }
-                      }}
-                      onViewportEnter={() => playSound('pop')}
-                      className="bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/50 p-5 pb-3 rounded-xl relative overflow-hidden group hover:border-yellow-400 transition-colors shadow-2xl flex flex-col justify-between min-h-[200px]"
+               if (isSingle) {
+                   // KHUSUS 1 PEMENANG: Batasi lebar container agar tidak gepeng/stretch
+                   containerWidth = "w-full max-w-md"; 
+                   gridClass = "grid-cols-1";
+               } else {
+                   // LOGIKA GRID BANYAK
+                   if (count === 2) gridClass = "grid-cols-2";
+                   if (count > 2 && count <= 4) gridClass = "grid-cols-2 md:grid-cols-4";
+                   if (count > 4 && count <= 8) gridClass = "grid-cols-2 md:grid-cols-4";
+                   if (count > 8 && count <= 10) gridClass = "grid-cols-3 md:grid-cols-5";
+                   if (count > 10) gridClass = "grid-cols-3 md:grid-cols-5";
+               }
+
+               return (
+                <div className={`${containerWidth} flex flex-col items-center h-full max-h-screen py-4 transition-all duration-500`}>
+                    
+                    {/* Title Section */}
+                    <motion.div 
+                      initial={{ y: -50, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      className={`text-center flex-shrink-0 ${isHighDensity ? 'mb-2' : 'mb-8'}`}
                     >
-                      {/* Dekorasi Glowing */}
-                      <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
-                        <Trophy size={60} />
-                      </div>
-
-                      <div className="absolute top-3 left-3 w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-bold shadow-inner border border-indigo-400 z-10">
-                        {idx + 1}
-                      </div>
-
-                      {/* Konten Kartu */}
-                      <div className="text-center flex-grow flex flex-col justify-center mt-2 z-10 relative">
-                        <div className="text-xl md:text-2xl font-bold text-white break-words leading-tight mb-2 px-1">
-                          {winner.name.split('-')[1] || winner.name}
-                        </div>
-                        
-                        {/* ID Badge */}
-                        <div className="mb-2">
-                            <span className="text-xs text-indigo-200 font-mono bg-indigo-900/70 px-3 py-1.5 rounded-full inline-block border border-indigo-500/30">
-                            {winner.name.split('-')[0] !== winner.name ? winner.name.split('-')[0] : 'ID: -'}
-                            </span>
-                        </div>
-
-                        {/* Instansi */}
-                        <div className="text-xs text-slate-400 truncate px-2">
-                           {winner.name.split('-')[2] || ''}
-                        </div>
-                      </div>
+                      <h2 className={`font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 ${isHighDensity ? 'text-3xl' : 'text-5xl md:text-6xl'}`}>
+                        {isSingle ? "SELAMAT KEPADA" : "SELAMAT KEPADA"}
+                      </h2>
+                      {!isSingle && <p className={`text-white ${isHighDensity ? 'text-sm' : 'text-xl'}`}>{count} Pemenang Terpilih</p>}
                     </motion.div>
-                  ))}
-                </motion.div>
 
-                {/* Close Button */}
-                <motion.button
-                  initial={{ y: 50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1, transition: { delay: 1 } }}
-                  onClick={() => setShowBatchModal(false)}
-                  className="mt-8 bg-white text-indigo-900 hover:bg-indigo-50 px-8 py-3 rounded-full font-bold text-lg flex items-center gap-2 shadow-xl hover:scale-105 transition-transform"
-                >
-                  <CheckCircle /> Selesai & Lanjut
-                </motion.button>
+                    {/* Grid/Card Container */}
+                    <motion.div 
+                      className={`grid ${gridClass} gap-4 w-full justify-center content-center flex-grow`}
+                      variants={{
+                        hidden: { opacity: 0 },
+                        show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+                      }}
+                      initial="hidden"
+                      animate="show"
+                    >
+                      {lastBatchWinners.map((winner, idx) => (
+                        <motion.div
+                          key={winner.id}
+                          variants={{
+                            hidden: { scale: 0, opacity: 0 },
+                            show: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 300, damping: 20 } }
+                          }}
+                          onViewportEnter={() => playSound('pop')}
+                          
+                          // --- STYLING KARTU DINAMIS ---
+                          className={`
+                            bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/50 
+                            rounded-xl relative overflow-hidden group hover:border-yellow-400 transition-colors shadow-2xl flex flex-col justify-between
+                            ${isSingle 
+                                ? 'p-8 min-h-[300px] border-yellow-500/50 shadow-yellow-500/20' // Style Hero (Besar & Mewah)
+                                : (isHighDensity ? 'p-2 min-h-[100px]' : 'p-5 pb-6 min-h-[160px]') // Style Normal
+                            }
+                          `}
+                        >
+                          {/* Dekorasi Trophy hanya untuk Single Winner */}
+                          {isSingle && (
+                             <div className="absolute top-0 right-0 p-4 opacity-20">
+                                <Trophy size={100} className="text-yellow-500" />
+                             </div>
+                          )}
 
-            </div>
+                          {/* Nomor Urut (Disembunyikan jika cuma 1 orang, karena tidak perlu ranking) */}
+                          {!isSingle && (
+                              <div className={`absolute left-2 rounded-full bg-indigo-600 flex items-center justify-center font-bold shadow-inner border border-indigo-400 z-10 
+                                ${isHighDensity ? 'top-2 w-5 h-5 text-[10px]' : 'top-3 w-8 h-8 text-sm'}
+                              `}>
+                                {idx + 1}
+                              </div>
+                          )}
+
+                          {/* Konten Text */}
+                          <div className="text-center flex-grow flex flex-col justify-center items-center z-10 relative w-full">
+                            
+                            {/* NAMA */}
+                            <div className={`font-bold text-white break-words leading-tight w-full px-1
+                                ${isSingle 
+                                    ? 'text-4xl md:text-5xl mb-6 mt-4 text-yellow-100' // Font Raksasa untuk Single
+                                    : (isHighDensity ? 'text-lg mb-1 mt-3' : 'text-xl md:text-2xl mb-2 mt-4')
+                                }
+                            `}>
+                              {winner.name.split('-')[1] || winner.name}
+                            </div>
+                            
+                            {/* ID BADGE */}
+                            <div className={isHighDensity ? 'mb-1' : 'mb-3'}>
+                                <span className={`text-indigo-200 font-mono bg-indigo-900/70 rounded-full inline-block border border-indigo-500/30
+                                    ${isSingle 
+                                        ? 'text-xl px-6 py-2' // Badge Besar
+                                        : (isHighDensity ? 'text-xs px-2 py-0.5' : 'text-xs px-3 py-1.5')
+                                    }
+                                `}>
+                                {winner.name.split('-')[0] !== winner.name ? winner.name.split('-')[0] : 'ID:-'}
+                                </span>
+                            </div>
+
+                            {/* INSTANSI */}
+                            <div className={`text-slate-400 truncate w-full font-bold px-1
+                                ${isSingle 
+                                    ? 'text-2xl mt-2' // Instansi Besar
+                                    : (isHighDensity ? 'text-lg' : 'text-xl')
+                                }
+                            `}>
+                               {winner.name.split('-')[2] || ''}
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+
+                    {/* Tombol Tutup */}
+                    <motion.button
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1, transition: { delay: 1 } }}
+                      onClick={() => setShowBatchModal(false)}
+                      className={`mt-4 bg-white text-indigo-900 hover:bg-indigo-50 rounded-full font-bold flex items-center gap-2 shadow-xl hover:scale-105 transition-transform flex-shrink-0
+                        ${isHighDensity ? 'px-6 py-2 text-sm' : 'px-8 py-3 text-lg'}
+                      `}
+                    >
+                      <CheckCircle size={isHighDensity ? 16 : 24} /> Selesai
+                    </motion.button>
+
+                </div>
+               );
+            })()}
           </motion.div>
         )}
       </AnimatePresence>
