@@ -32,15 +32,42 @@ export default function SpinWheelApp() {
   const [isMuted, setIsMuted] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const tickAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    // Inisialisasi audio tick sekali saja
+    tickAudioRef.current = new Audio("/sounds/tick.mp3");
+    tickAudioRef.current.volume = 0.5; // Set volume default
+  }, []);
   
   // --- SOUND SYSTEM ---
+  // Helper: Play Sound
   const playSound = (type: 'tick' | 'win' | 'pop') => {
     if (isMuted) return;
+
+    // KHUSUS TICK: Gunakan Ref yang sama agar tidak menumpuk & bisa distop
+    if (type === 'tick') {
+        if (tickAudioRef.current) {
+            tickAudioRef.current.currentTime = 0; // Reset ke awal
+            tickAudioRef.current.play().catch(() => {});
+        }
+        return;
+    }
+
+    // UNTUK WIN & POP: Boleh buat baru (fire-and-forget) karena overlap tidak masalah
     const audio = new Audio(`/sounds/${type}.mp3`);
     if (type === 'pop') audio.volume = 0.3; 
     else audio.volume = 0.5;
     
     audio.play().catch(() => {});
+  };
+
+  // Helper Baru: STOP TICK PAKSA
+  const stopTickSound = () => {
+      if (tickAudioRef.current) {
+          tickAudioRef.current.pause(); // Matikan suara
+          tickAudioRef.current.currentTime = 0; // Reset
+      }
   };
 
   // --- PARSING DATA ---
@@ -93,8 +120,8 @@ export default function SpinWheelApp() {
     setShowBatchModal(false);
     setLastBatchWinners([]);
 
-    // 1. ANIMASI ROLLING (Visual Only)
-    const duration = 3000;
+    // 1. ANIMASI ROLLING (Visual Only) - 3 Detik
+    const duration = 5000;
     const endTime = Date.now() + duration;
     
     await new Promise<void>((resolve) => {
@@ -103,14 +130,19 @@ export default function SpinWheelApp() {
             const randomIdx = Math.floor(Math.random() * names.length);
             setCurrentSpinName(names[randomIdx]);
             
-            if (Math.random() > 0.7) playSound('tick');
+            // Sound effect (Tick)
+            if (Math.random() > 0.5) playSound('tick'); 
 
             if (Date.now() > endTime) {
                 clearInterval(interval);
+                stopTickSound(); // <--- TAMBAHAN PENTING: Matikan suara tick segera!
                 resolve();
             }
         }, 50);
     });
+    
+    // Pastikan lagi tick mati (double safety mechanism)
+    stopTickSound(); 
 
     // 2. KALKULASI PEMENANG (Matematika Cepat)
     let tempNames = [...names];
@@ -131,12 +163,12 @@ export default function SpinWheelApp() {
     }
 
     // 3. UPDATE STATE UTAMA
-    playSound('win');
-    setCurrentSpinName(`Ready!`);
-    setAllWinners(prev => [...prev, ...newWinners]);
-    setLastBatchWinners(newWinners);
+    playSound('win'); // Suara kemenangan masuk
     
-    // Update List Input (Hapus pemenang)
+    setCurrentSpinName(`${newWinners.length} TERPILIH!`); 
+    setAllWinners(prev => [...prev, ...newWinners]); 
+    setLastBatchWinners(newWinners); 
+    
     const newWinnerNamesSet = new Set(newWinners.map(w => w.name));
     const remainingNames = names.filter(n => !newWinnerNamesSet.has(n));
     setNames(remainingNames);
@@ -144,7 +176,7 @@ export default function SpinWheelApp() {
 
     // 4. TRIGGER MODAL & SELESAI
     setIsSpinning(false);
-    setShowBatchModal(true);
+    setShowBatchModal(true); 
     triggerConfetti();
   };
 
@@ -304,8 +336,7 @@ export default function SpinWheelApp() {
                         show: { scale: 1, opacity: 1, transition: { type: "spring", stiffness: 200 } }
                       }}
                       onViewportEnter={() => playSound('pop')}
-                      // PERBAIKAN: Ubah padding (p-6 jadi p-5 pb-8) untuk memberi ruang lebih di bawah
-                      className="bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/50 p-5 pb-8 rounded-xl relative overflow-hidden group hover:border-yellow-400 transition-colors shadow-2xl flex flex-col justify-between min-h-[160px]"
+                      className="bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/50 p-5 pb-3 rounded-xl relative overflow-hidden group hover:border-yellow-400 transition-colors shadow-2xl flex flex-col justify-between min-h-[200px]"
                     >
                       {/* Dekorasi Glowing */}
                       <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
