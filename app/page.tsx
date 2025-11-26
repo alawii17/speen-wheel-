@@ -163,7 +163,7 @@ export default function SpinWheelApp() {
     }
 
     // 3. UPDATE STATE UTAMA
-    playSound('win'); // Suara kemenangan masuk
+    playSound('win');
     
     setCurrentSpinName(`Ready!`); 
     setAllWinners(prev => [...prev, ...newWinners]); 
@@ -303,21 +303,16 @@ export default function SpinWheelApp() {
             {(() => {
                const count = lastBatchWinners.length;
                
-               // --- LOGIKA KEPADATAN ---
-               const isSingle = count === 1;           // Mode Hero (1 Orang)
-               const isHighDensity = count > 10;       // Mode Padat (>10 Orang)
+               const isSingle = count === 1;
+               const isHighDensity = count > 10;     
                
-               // --- TENTUKAN GRID & CONTAINER ---
-               // Default: Full width untuk grid banyak
                let containerWidth = "w-full max-w-7xl"; 
                let gridClass = "grid-cols-1"; 
 
                if (isSingle) {
-                   // KHUSUS 1 PEMENANG: Batasi lebar container agar tidak gepeng/stretch
                    containerWidth = "w-full max-w-md"; 
                    gridClass = "grid-cols-1";
                } else {
-                   // LOGIKA GRID BANYAK
                    if (count === 2) gridClass = "grid-cols-2";
                    if (count > 2 && count <= 4) gridClass = "grid-cols-2 md:grid-cols-4";
                    if (count > 4 && count <= 8) gridClass = "grid-cols-2 md:grid-cols-4";
@@ -328,7 +323,6 @@ export default function SpinWheelApp() {
                return (
                 <div className={`${containerWidth} flex flex-col items-center h-full max-h-screen py-4 transition-all duration-500`}>
                     
-                    {/* Title Section */}
                     <motion.div 
                       initial={{ y: -50, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
@@ -391,7 +385,7 @@ export default function SpinWheelApp() {
                             {/* NAMA */}
                             <div className={`font-bold text-white break-words leading-tight w-full px-1
                                 ${isSingle 
-                                    ? 'text-4xl md:text-5xl mb-6 mt-4 text-yellow-100' // Font Raksasa untuk Single
+                                    ? 'text-4xl md:text-5xl mb-6 mt-4 text-yellow-100'
                                     : (isHighDensity ? 'text-lg mb-1 mt-3' : 'text-xl md:text-2xl mb-2 mt-4')
                                 }
                             `}>
@@ -402,7 +396,7 @@ export default function SpinWheelApp() {
                             <div className={isHighDensity ? 'mb-1' : 'mb-3'}>
                                 <span className={`text-indigo-200 font-mono bg-indigo-900/70 rounded-full inline-block border border-indigo-500/30
                                     ${isSingle 
-                                        ? 'text-xl px-6 py-2' // Badge Besar
+                                        ? 'text-xl px-6 py-2'
                                         : (isHighDensity ? 'text-xs px-2 py-0.5' : 'text-xs px-3 py-1.5')
                                     }
                                 `}>
@@ -413,7 +407,7 @@ export default function SpinWheelApp() {
                             {/* INSTANSI */}
                             <div className={`text-slate-400 truncate w-full font-bold px-1
                                 ${isSingle 
-                                    ? 'text-2xl mt-2' // Instansi Besar
+                                    ? 'text-2xl mt-2'
                                     : (isHighDensity ? 'text-lg' : 'text-xl')
                                 }
                             `}>
