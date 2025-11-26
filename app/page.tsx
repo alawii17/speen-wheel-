@@ -20,6 +20,7 @@ type CsvRow = Record<string, string>;
 export default function SpinWheelApp() {
   const [inputNames, setInputNames] = useState<string>("");
   const [names, setNames] = useState<string[]>([]);
+  const [customTotalCount, setCustomTotalCount] = useState<number | null>(null);
   const [allWinners, setAllWinners] = useState<Winner[]>([]);
   
   const [lastBatchWinners, setLastBatchWinners] = useState<Winner[]>([]);
@@ -35,9 +36,8 @@ export default function SpinWheelApp() {
   const tickAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Inisialisasi audio tick sekali saja
     tickAudioRef.current = new Audio("/sounds/tick.mp3");
-    tickAudioRef.current.volume = 0.5; // Set volume default
+    tickAudioRef.current.volume = 0.5;
   }, []);
   
   // --- SOUND SYSTEM ---
@@ -65,8 +65,8 @@ export default function SpinWheelApp() {
   // Helper Baru: STOP TICK PAKSA
   const stopTickSound = () => {
       if (tickAudioRef.current) {
-          tickAudioRef.current.pause(); // Matikan suara
-          tickAudioRef.current.currentTime = 0; // Reset
+          tickAudioRef.current.pause();
+          tickAudioRef.current.currentTime = 0;
       }
   };
 
@@ -121,27 +121,24 @@ export default function SpinWheelApp() {
     setLastBatchWinners([]);
 
     // 1. ANIMASI ROLLING (Visual Only) - 3 Detik
-    const duration = 5000;
+    const duration = 10000;
     const endTime = Date.now() + duration;
     
     await new Promise<void>((resolve) => {
         const interval = setInterval(() => {
-            // Tampilkan acak
             const randomIdx = Math.floor(Math.random() * names.length);
             setCurrentSpinName(names[randomIdx]);
             
-            // Sound effect (Tick)
             if (Math.random() > 0.5) playSound('tick'); 
 
             if (Date.now() > endTime) {
                 clearInterval(interval);
-                stopTickSound(); // <--- TAMBAHAN PENTING: Matikan suara tick segera!
+                stopTickSound();
                 resolve();
             }
         }, 50);
     });
     
-    // Pastikan lagi tick mati (double safety mechanism)
     stopTickSound(); 
 
     // 2. KALKULASI PEMENANG (Matematika Cepat)
@@ -202,7 +199,28 @@ export default function SpinWheelApp() {
               <h2 className="text-xl font-bold flex items-center gap-2 text-indigo-400">
                 <Users size={20} /> Data Peserta
               </h2>
-              <span className="text-sm bg-indigo-600 px-3 py-1 rounded-full text-white font-bold">{names.length}</span>
+              {/* <span className="text-sm bg-indigo-600 px-3 py-1 rounded-full text-white font-bold">{names.length}</span> */}
+              {/* --- GANTI BAGIAN INDIKATOR TOTAL INI --- */}
+              <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-400">Total Tampil:</span>
+                  <div className="relative group">
+                    <input 
+                      type="number" 
+                      // Logika: Jika ada angka custom, pakai itu. Jika tidak, pakai jumlah data asli
+                      value={customTotalCount !== null ? customTotalCount : names.length}
+                      onChange={(e) => setCustomTotalCount(Number(e.target.value))}
+                      className="w-20 bg-indigo-600 text-white font-bold text-sm text-center px-2 py-1 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-indigo-500 transition-all border border-transparent hover:border-indigo-300"
+                      title="Klik untuk ubah angka manual (Hardcode)"
+                    />
+                    {/* Indikator kecil jika angka dimanipulasi */}
+                    {customTotalCount !== null && customTotalCount !== names.length && (
+                      <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+                      </span>
+                    )}
+                  </div>
+              </div>
             </div>
             
             <div className="mb-4">
