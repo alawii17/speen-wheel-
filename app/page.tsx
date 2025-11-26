@@ -269,7 +269,7 @@ export default function SpinWheelApp() {
                    key={currentSpinName} 
                    initial={{ y: 50, opacity: 0, filter: "blur(10px)" }}
                    animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-                   className={`font-bold text-white text-center px-8 leading-tight ${isFullScreen ? 'text-5xl' : 'text-3xl'}`}
+                   className={`font-bold text-white text-center px-8 z-90 leading-tight ${isFullScreen ? 'text-5xl' : 'text-3xl'}`}
                >
                    {currentSpinName}
                </motion.div>
