@@ -200,7 +200,6 @@ export default function SpinWheelApp() {
                 <Users size={20} /> Data Peserta
               </h2>
               {/* <span className="text-sm bg-indigo-600 px-3 py-1 rounded-full text-white font-bold">{names.length}</span> */}
-              {/* --- GANTI BAGIAN INDIKATOR TOTAL INI --- */}
               <div className="flex items-center gap-2">
                   <span className="text-xs text-slate-400">Total Tampil:</span>
                   <div className="relative group">
